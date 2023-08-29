@@ -28,7 +28,7 @@ def on_connect(client, userdata, flags, rc):
 
 # 消息回调函数
 def on_message(client, userdata, message):
-    target_region_no = 'G32050700004'
+    target_group_no = 'G32050700004'
     objs = dpe.BeautifiedObjects()
     objs.ParseFromString(message.payload)
     objs_dict = MessageToDict(objs)
@@ -41,7 +41,7 @@ def on_message(client, userdata, message):
     for every_data in objs_dict['objects']:
         if 'velocity' in every_data and every_data['velocity'] >= 1 \
                 and 'type' in every_data and every_data['type'] in [1, 4, 5, 6] \
-                and 'groupNo' in every_data and every_data['groupNo'] == target_region_no:
+                and 'groupNo' in every_data and every_data['groupNo'] == target_group_no:
             data_list.append({'position':every_data['position'],'timeMeas':every_data['timeMeas'], 'groupNo':every_data['groupNo']})
             # print(data_list)
     # print(type(objs_dict))
@@ -233,10 +233,16 @@ def get_coord(compare_array, region_json, region_no, compare_json, timestamp):
     return wkt_list
 
 
-def write_down_base(target_region_no, json_file, output_folder, area):
+def write_down_base():
     timestamp = tm.time()
     timestamp = int(timestamp * 1e6)  # 获取当前时间戳
     global filtered_data
+    target_region_no = 'G32050700004'
+    json_file = 'D:/points/danglic/server_version/information_of_group.json'
+    area = 1
+    output_folder = 'D:/points/danglic/server_version/record_base/G32050700004'
+    # compare_json = 'D:/points/danglic/server_version/arrays_data_daytime.json'
+    # json_data = read_json_file(compare_json)
 
     polygon = find_polygon_by_region_no(json_file, target_region_no)
     point_list = get_point_data(filtered_data)
@@ -273,11 +279,16 @@ def write_down_base(target_region_no, json_file, output_folder, area):
 
     print("CSV file has been created:", file_path)
 
-def output_task(target_region_no, json_file, output_folder, compare_json):
+def output_task():
     timestamp = tm.time()
     timestamp = int(timestamp * 1e6)# 获取当前时间戳
     global filtered_data
     filtered_data = output_data()
+    target_region_no = 'G32050700004'
+    json_file = 'D:/points/danglic/server_version/information_of_group.json'
+    area = 1
+    output_folder = 'D:/points/danglic/server_version/G32050700004'
+    compare_json = 'D:/points/danglic/server_version/arrays_data_test_1.4_multipler.json'
     current_time = datetime.now().time()
     start_time = time(7, 29, 59)  # 7:00 AM
     end_time = time(0, 29, 59)  # 11:59 PM
@@ -323,11 +334,6 @@ def on_log(client, userdata, level, buf):
     print(f"MQTT log: {buf}")
 
 if __name__ == '__main__':
-    target_region_no = 'G32050700004' # 道路编号
-    json_file = 'D:/points/danglic/server_version/information_of_group.json' #本目录下的information_of_group文件，包含
-    area = 1 # 切割的放个面积
-    output_folder = 'D:/points/danglic/server_version/G32050700004' # 输出的存档文件文件夹
-    compare_json = 'D:/points/danglic/server_version/arrays_data_test_1.5_multipler.json' # 用存档文件生成的可用于比较密度差异的json文件
     # 配置日志记录
     logging.basicConfig(level=logging.DEBUG,  # 设置日志级别为DEBUG，记录所有级别的日志
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -393,10 +399,8 @@ if __name__ == '__main__':
     client.connect(broker_address, port=port)
 
     # 每隔5分钟执行一次输出任务
-    custom_output_task = output_task(target_region_no, json_file,output_folder, compare_json)
-    custom_write_down_base = write_down_base(target_region_no, json_file, output_folder, area)
-    schedule.every(30).minutes.do(custom_output_task)
-    schedule.every(30).minutes.do(custom_write_down_base)
+    schedule.every(5).minutes.do(output_task)
+    schedule.every(30).minutes.do(write_down_base)
 
     # ...其他代码...
 
@@ -404,12 +408,10 @@ if __name__ == '__main__':
     client.loop_start()
     # client.on_log = on_log
 
-    client.loop_start()
-
     try:
+        tm.sleep(1800)
         while True:
             schedule.run_pending()  # 执行定时任务
-            tm.sleep(1)
             tm.sleep(1)
     except KeyboardInterrupt:
         # Ctrl+C 停止循环并断开连接
