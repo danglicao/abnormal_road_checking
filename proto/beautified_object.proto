@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package proto;
+
+import "proto/math/geo.proto";
+import "proto/math/color.proto";
+
+option go_package = "esurfing.com/proto/dpe/beautified_object";
+option java_package = "com.esurfing.proto.dpe";
+option java_outer_classname = "BeautifiedObjectDTO";
+option java_multiple_files = false;
+
+message FittingFunc {
+    repeated float xParam = 1;
+    repeated float yParam = 2;
+    float tParam = 3;
+}
+
+message BeautifiedObject {
+    int64 id = 1;                 // id
+    bytes vehId = 2;              // 自车编号
+    int64 seq = 3;                // 帧号
+    int32 keepFrame = 4;          // 当前状态保持了多少帧
+    bool is_moving = 5;           // 当前状态是否运动
+    math.Vector3f position = 6;        // 位置
+    math.Vector3f shape = 7;           // 形状
+    math.Polygon hull = 8;             // 外接多边形
+    float orientation = 9;        // 车头朝向
+    float velocity = 10;          // 速度
+    int32 type = 11;              // 类型
+    math.Color color = 12;             // 颜色，废弃
+    float heading = 13;           // 运动方向
+    FittingFunc fittingFun = 14;  // 拟合函数
+    int64 timeMeas = 15;          // data time_stamp from driver
+    bytes source_node = 16;       // same as source_node of detected object
+    string vehicle_license = 17; // dpe绑定车牌号
+    int32 license_color = 18; // dpe车牌颜色
+    int32 obj_color = 19;   //原始 vehicle color
+    repeated LicenePlate plate = 20;  //原始 vehicle plate
+    string group_no = 21; //交通参与者所在的大组
+    Glosa glosa = 22; //引导车速，车辆有效
+}
+
+//绿波引导车速
+message Glosa {
+    float minSpeed = 1; //建议最低速度
+    float maxSpeed = 2; //建议最高速度
+    string intersection_id = 4; //交通参与者所在的大组
+    string light = 3; //灯色
+    int32 like_end_time = 5; //倒计时
+    string veh_area = 6; // 车辆所在位置 1-道路；2-交叉口；3-未知区域
+}
+
+message LicenePlate {
+    int32 color = 1;
+    float color_confidence = 2;
+    string number = 3;
+    float number_confidence = 4;
+}
+
+
+message BeautifiedObjects {
+    sfixed64 time_sub = 1; // in miliseconds, dpe receive time
+    sfixed64 time_pub = 2; // in miliseconds, dpe send time
+    repeated BeautifiedObject objects = 3;
+  }
+  
