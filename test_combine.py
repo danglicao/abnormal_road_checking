@@ -288,20 +288,21 @@ def output_task():
     json_file = 'D:/points/danglic/server_version/information_of_group.json'
     area = 1
     output_folder = 'D:/points/danglic/server_version/G32050700004'
-    compare_json = 'D:/points/danglic/server_version/arrays_data_test_1.4_multipler.json'
+    compare_json = 'D:/points/danglic/server_version/arrays_data_test_2_multipler.json'
+   # night_compare_json  =
     current_time = datetime.now().time()
     start_time = time(7, 29, 59)  # 7:00 AM
     end_time = time(0, 29, 59)  # 11:59 PM
-
+    json_data = read_json_file(compare_json)
+    # json_data_night = read_json_file(night_compare_json)
+    polygon = find_polygon_by_region_no(json_file, target_region_no)
+    point_list = get_point_data(filtered_data)
+    density_array = get_normalized_density_array(point_list, polygon, area)
     if is_time_between(start_time, end_time, current_time):
-        json_data = read_json_file(compare_json)
+        wkt_list = get_coord(density_array, json_file, target_region_no, json_data, timestamp)
 
-        polygon = find_polygon_by_region_no(json_file, target_region_no)
-        point_list = get_point_data(filtered_data)
-        density_array = get_normalized_density_array(point_list, polygon, area)
     else:
-        density_array = np.array([])
-    wkt_list = get_coord(density_array, json_file, target_region_no,json_data, timestamp)
+        wkt_list = get_coord(density_array, json_file, target_region_no,json_data, timestamp) # 修改此部分，生成夜晚的dict后修改json_data为night_json_data到此处
 
     # 打印或使用 coords
     # print(coords)
